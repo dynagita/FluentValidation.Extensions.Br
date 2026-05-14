@@ -1,4 +1,4 @@
-﻿namespace FluentValidation
+namespace FluentValidation
 {
     using Validators;
 
@@ -9,11 +9,9 @@
     {
         /// <summary>
         /// Defines a 'CNPJ' validator on the current rule builder.
-        /// Validation will fail if the property is null, an empty or the value is a invalid CNPJ         
+        /// Accepts both the current numeric format and the new alphanumeric format (Receita Federal, July 2026).
+        /// Validation will fail if the property is null, empty, or the value is an invalid CNPJ.
         /// </summary>
-        /// <typeparam name="T">Type of object being validated</typeparam>
-        /// <param name="ruleBuilder">The rule builder on which the validator should be defined</param>
-        /// <returns>a rule builder with cnpj validation included</returns>
         public static IRuleBuilderOptions<T, string> IsValidCNPJ<T>(this IRuleBuilder<T, string> ruleBuilder)
         {
             return ruleBuilder.SetValidator(new CNPJValidator<T, string>());
@@ -21,14 +19,21 @@
 
         /// <summary>
         /// Defines a 'CPF' validator on the current rule builder.
-        /// Validation will fail if the property is null, an empty or the value is a invalid CPF         
+        /// Validation will fail if the property is null, empty, or the value is an invalid CPF.
         /// </summary>
-        /// <typeparam name="T">Type of object being validated</typeparam>
-        /// <param name="ruleBuilder">The rule builder on which the validator should be defined</param>
-        /// <returns>a rule builder with cnpj validation included</returns>
         public static IRuleBuilderOptions<T, string> IsValidCPF<T>(this IRuleBuilder<T, string> ruleBuilder)
         {
-            return ruleBuilder.SetValidator(new CPFValidator<T, string>());
+            return ruleBuilder.SetValidator(new CpfValidator<T, string>());
+        }
+
+        /// <summary>
+        /// Defines a 'CPF or CNPJ' validator on the current rule builder.
+        /// Accepts CPF (11 digits) or CNPJ in any format (numeric or alphanumeric, 14 characters).
+        /// Validation will fail if the property is null, empty, or neither a valid CPF nor a valid CNPJ.
+        /// </summary>
+        public static IRuleBuilderOptions<T, string> IsValidCpfOrCnpj<T>(this IRuleBuilder<T, string> ruleBuilder)
+        {
+            return ruleBuilder.SetValidator(new CPFCNPJValidator<T, string>());
         }
     }
 }

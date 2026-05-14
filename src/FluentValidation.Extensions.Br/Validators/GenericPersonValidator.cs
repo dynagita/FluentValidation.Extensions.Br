@@ -1,70 +1,66 @@
-﻿namespace FluentValidation.Validators
+namespace FluentValidation.Validators
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
-    using System.Text.RegularExpressions;
 
-
-    /// <summary>
-    /// Base class for brazilian person´s document validation (CPF/CNPJ).
-    /// </summary>
     public abstract class GenericPersonValidator<T, TProperty> : PropertyValidator<T, TProperty>, IBrazilianPropertyValidator
     {
-        private readonly int validLength;
-        private readonly string errorMessage;
+        private readonly string _errorMessage;
 
+        protected abstract int ValidLength { get; }
         protected abstract int[] FirstMultiplierCollection { get; }
         protected abstract int[] SecondMultiplierCollection { get; }
 
-        protected GenericPersonValidator(int validLength, string errorMessage)
+        protected GenericPersonValidator(string errorMessage)
         {
-            this.validLength = validLength;
-            this.errorMessage = errorMessage;
+            _errorMessage = errorMessage;
         }
 
         protected override string GetDefaultMessageTemplate(string errorCode)
-        {
-            return string.IsNullOrWhiteSpace(errorMessage) ? base.GetDefaultMessageTemplate(errorCode) : errorMessage;
-        }
+            => string.IsNullOrWhiteSpace(_errorMessage) ? base.GetDefaultMessageTemplate(errorCode) : _errorMessage;
+
+        protected abstract string Sanitize(string value);
+
+        protected virtual int[] GetNumericValues(string sanitized)
+            => sanitized.Select(x => (int)char.GetNumericValue(x)).ToArray();
 
         public override bool IsValid(ValidationContext<T> context, TProperty value)
         {
-            var val = value as string ?? string.Empty;
-            val = Regex.Replace(val, "[^a-zA-Z0-9]", "");
+            if (EqualityComparer<TProperty>.Default.Equals(value, default)) return false;
 
-            if (IsValidLength(val) || 
-                AllDigitsAreEqual(val) || 
-                value == null) return false;
+            var val = Sanitize(value as string ?? string.Empty);
 
-            var cpf = val.Select(x => (int)char.GetNumericValue(x)).ToArray();
-            var digits = GetDigits(cpf);
+            if (val.Length != ValidLength || AllDigitsAreEqual(val))
+                return false;
 
-            return val.EndsWith(digits);
+            var numbers = GetNumericValues(val);
+
+            return val.EndsWith(GetCheckDigits(numbers));
         }
 
-        static bool AllDigitsAreEqual (string value) => value.All(x => x == value.FirstOrDefault());
+        private static bool AllDigitsAreEqual(string value)
+            => value.Distinct().Count() == 1;
 
-        bool IsValidLength (string value) => !string.IsNullOrWhiteSpace(value) && value.Length != validLength;
-
-        string GetDigits(int[] cpf)
+        private string GetCheckDigits(int[] numbers)
         {
-            var first = CalculateValue(FirstMultiplierCollection, cpf);
-            var second = CalculateValue(SecondMultiplierCollection, cpf);
-
+            var first = CalculateValue(FirstMultiplierCollection, numbers);
+            var second = CalculateValue(SecondMultiplierCollection, numbers);
             return $"{CalculateDigit(first)}{CalculateDigit(second)}";
         }
 
-        static int CalculateValue(int[] weight, int[] numbers)
+        private static int CalculateValue(int[] weights, int[] numbers)
         {
             var sum = 0;
-            for (int i = 0; i < weight.Length; i++) sum += weight[i] * numbers[i];
+            for (int i = 0; i < weights.Length; i++)
+                sum += weights[i] * numbers[i];
             return sum;
         }
 
-        static int CalculateDigit(int sum)
+        private static int CalculateDigit(int sum)
         {
-            int modResult = (sum % 11);
-            return modResult < 2 ? 0 : 11 - modResult;
+            var mod = sum % 11;
+            return mod < 2 ? 0 : 11 - mod;
         }
     }
 }

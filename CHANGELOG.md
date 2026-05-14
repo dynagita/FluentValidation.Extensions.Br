@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-conventions](https://www.conventionalcommits.org/en/v1.0.0/#specification) for commit guidelines.
 
+
+### 1.0.3 (2026-05-13)
+
+### 🎉 Features
+* **project:** Includes validation for cnpj alphanumeric, according to the standard defined by the (Receita Federal)[https://www.gov.br/receitafederal/pt-br/centrais-de-conteudo/publicacoes/perguntas-e-respostas/cnpj/cnpj-alfanumerico.pdf3,], who starts in 07/01/2026.
+
+
 ### 1.0.2 (2021-04-21)
 
 

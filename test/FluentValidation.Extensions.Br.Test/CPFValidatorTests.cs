@@ -1,4 +1,4 @@
-﻿namespace FluentValidation.Extensions.Br.Test
+namespace FluentValidation.Extensions.Br.Test
 {
     using Results;
     using Xunit;
@@ -6,11 +6,13 @@
 
     public class CPFValidatorTests
     {
-        [Fact]
-        public void When_CPF_Is_Valid_Then_The_Validator_Should_Pass()
+        [Theory]
+        [InlineData("822.420.106-62")]  // with mask
+        [InlineData("82242010662")]      // without mask
+        public void When_CPF_Is_Valid_Then_The_Validator_Should_Pass(string cpf)
         {
             TestExtensionsValidator validator = new TestExtensionsValidator(x => x.RuleFor(r => r.CPF).IsValidCPF());
-            ValidationResult result = validator.Validate(new Person { CPF = "822.420.106-62" });
+            ValidationResult result = validator.Validate(new Person { CPF = cpf });
 
             Assert.True(result.IsValid);
         }
@@ -29,7 +31,6 @@
             Assert.Equal(customMessage, errorMessage);
         }
 
-
         [Theory]
         [InlineData("144.442.344-57")]
         [InlineData("543.434.321-76")]
@@ -41,8 +42,7 @@
             ValidationResult result = validator.Validate(new Person { CPF = cpf });
 
             Assert.False(result.IsValid);
-            Assert.Equal(result.Errors.First().ErrorMessage, "O CPF é inválido!");
+            Assert.Equal("O CPF é inválido!", result.Errors.First().ErrorMessage);
         }
-
     }
 }

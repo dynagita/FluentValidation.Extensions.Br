@@ -1,24 +1,25 @@
-﻿namespace FluentValidation.Validators
+namespace FluentValidation.Validators
 {
-    /// <summary>
-    /// Ensures that the property value is a valid CPF number.
-    /// </summary>
-    public class CPFValidator<T, TProperty> : GenericPersonValidator<T, TProperty>
+    using System;
+    using System.Linq;
+    using System.Text.RegularExpressions;
+
+    public class CpfValidator<T, TProperty> : GenericPersonValidator<T, TProperty>
     {
-        internal CPFValidator(int validLength, string errorMessage) 
-            : base(validLength, errorMessage)
-        { }
+        public CpfValidator(string errorMessage = "O CPF é inválido!")
+            : base(errorMessage) { }
 
-        public CPFValidator(string errorMessage)
-            : this(11, errorMessage)
-        { }
-
-        public CPFValidator()
-            : this("O CPF é inválido!")
-        { }
-
-        protected override int[] FirstMultiplierCollection => new int[9] { 10, 9, 8, 7, 6, 5, 4, 3, 2 };
-        protected override int[] SecondMultiplierCollection => new int[10] { 11, 10, 9, 8, 7, 6, 5, 4, 3, 2 };
+        protected override int ValidLength => 11;
+        protected override int[] FirstMultiplierCollection => new[] { 10, 9, 8, 7, 6, 5, 4, 3, 2 };
+        protected override int[] SecondMultiplierCollection => new[] { 11, 10, 9, 8, 7, 6, 5, 4, 3, 2 };
         public override string Name => "CPFValidator";
+
+        protected override string Sanitize(string value)
+        {
+            if (value.Any(char.IsLetter))
+                return string.Empty;
+
+            return Regex.Replace(value, "[^0-9]", "", RegexOptions.None, TimeSpan.FromSeconds(1));
+        }
     }
 }

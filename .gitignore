@@ -289,3 +289,5 @@ __pycache__/
 
 # Coverage Report
 covarge_report.xml
+results/
+*.claude/**
